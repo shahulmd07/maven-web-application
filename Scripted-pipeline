@@ -1,31 +1,49 @@
-node {
+pipeline {
 
-def mavenHome = tool name: "maven3.8.5"
+agent any 
+tools 
+{
+maven "maven3.8.5"
+}
 
-stage('checkoutcode')
+stages{
+stage('chcekoutcode')
+{
+steps
 {
 git branch: 'development', credentialsId: 'd3db2ac9-2fdc-4050-aa02-a1bc7a9a69e2', url: 'https://github.com/shahulmd07/maven-web-application.git'
-}
 
+}
+}
 stage('Build')
 {
-sh "${mavenHome}/bin/mvn clean package"
+steps
+{
+sh "mvn clean package"
 }
-
+}
 stage('SonarqubeReport')
 {
-sh "${mavenHome}/bin/mvn sonar:sonar"
+steps
+{
+sh "mvn sonar:sonar"
 }
-
+}
 stage('Artifacts')
 {
-sh "${mavenHome}/bin/mvn deploy"
+steps
+{
+sh "mvn deploy"
 }
- stage('Deploytocontainer')
- {
+}
+stage('Deploytocontainer')
+{
+steps
+{
  sshagent(['ba1825d6-5e30-4df6-9368-1199c89a9693']) {
-  sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.163.118:/opt/apache-tomcat-9.0.67/webapps"
-
+   scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.163.118:/opt/apache-tomcat-9.0.67/webapps
+}
+}
 }
 }
 }
